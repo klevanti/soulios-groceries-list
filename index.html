@@ -1,0 +1,375 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Soulios Soulios Family Groceries</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    background: #f0f4f0;
+    min-height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
+    padding: 40px 16px;
+  }
+
+  #login-screen {
+    background: #fff;
+    border-radius: 16px;
+    padding: 40px 32px;
+    box-shadow: 0 4px 24px rgba(0,0,0,0.08);
+    max-width: 380px;
+    width: 100%;
+    text-align: center;
+    margin-top: 60px;
+  }
+  #login-screen h1 { font-size: 24px; color: #2d6a4f; margin-bottom: 8px; }
+  #login-screen p { color: #666; margin-bottom: 24px; font-size: 14px; }
+  #login-screen input {
+    width: 100%;
+    padding: 12px 16px;
+    border: 2px solid #ddd;
+    border-radius: 10px;
+    font-size: 16px;
+    outline: none;
+    transition: border-color 0.2s;
+  }
+  #login-screen input:focus { border-color: #2d6a4f; }
+  #login-screen button {
+    width: 100%;
+    margin-top: 16px;
+    padding: 12px;
+    background: #2d6a4f;
+    color: #fff;
+    border: none;
+    border-radius: 10px;
+    font-size: 16px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.2s;
+  }
+  #login-screen button:hover { background: #1b4332; }
+  #login-error {
+    color: #d00;
+    font-size: 13px;
+    margin-top: 12px;
+    display: none;
+  }
+
+  #app-screen {
+    display: none;
+    background: #fff;
+    border-radius: 16px;
+    padding: 32px 28px;
+    box-shadow: 0 4px 24px rgba(0,0,0,0.08);
+    max-width: 480px;
+    width: 100%;
+  }
+  #app-screen h1 {
+    font-size: 24px;
+    color: #2d6a4f;
+    margin-bottom: 4px;
+  }
+  #app-screen .subtitle {
+    color: #888;
+    font-size: 13px;
+    margin-bottom: 20px;
+  }
+
+  .bulk-actions {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 24px;
+  }
+  .bulk-actions button {
+    flex: 1;
+    padding: 10px 0;
+    border: 2px solid #2d6a4f;
+    border-radius: 10px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+  .btn-mark-all { background: #2d6a4f; color: #fff; }
+  .btn-mark-all:hover { background: #1b4332; }
+  .btn-clear-all { background: #fff; color: #2d6a4f; }
+  .btn-clear-all:hover { background: #e8f5e9; }
+
+  .section { margin-bottom: 24px; }
+  .section-header {
+    font-size: 14px;
+    font-weight: 700;
+    padding: 10px 14px 6px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    border-radius: 8px;
+    margin-bottom: 2px;
+  }
+  .section-header.sec-weekly { color: #2d6a4f; background: #e8f5e9; }
+  .section-header.sec-biweekly { color: #1565c0; background: #e3f2fd; }
+  .section-header.sec-cooking { color: #e65100; background: #fff3e0; }
+  .section-header.sec-pantry { color: #6a1b9a; background: #f3e5f5; }
+  .sub-label {
+    font-size: 12px;
+    font-weight: 600;
+    color: #999;
+    padding: 6px 12px 2px;
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+  }
+  .item-icon {
+    font-size: 20px;
+    margin-right: 10px;
+    flex-shrink: 0;
+  }
+
+  ul { list-style: none; }
+  li {
+    display: flex;
+    align-items: center;
+    padding: 12px 12px;
+    border-bottom: 1px solid #f0f0f0;
+    cursor: pointer;
+    transition: background 0.15s;
+    border-radius: 8px;
+    user-select: none;
+  }
+  li:hover { background: #f7faf7; }
+  li.checked .item-name {
+    text-decoration: line-through;
+    color: #aaa;
+  }
+  li .checkbox {
+    width: 24px;
+    height: 24px;
+    border: 2px solid #ccc;
+    border-radius: 6px;
+    margin-right: 14px;
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s;
+  }
+  li.checked .checkbox {
+    background: #2d6a4f;
+    border-color: #2d6a4f;
+  }
+  li.checked .checkbox::after {
+    content: '';
+    width: 6px;
+    height: 11px;
+    border: solid #fff;
+    border-width: 0 2.5px 2.5px 0;
+    transform: rotate(45deg);
+    margin-bottom: 2px;
+  }
+  .item-name {
+    font-size: 16px;
+    color: #333;
+    transition: color 0.2s;
+  }
+  .counter {
+    text-align: center;
+    margin-top: 20px;
+    font-size: 13px;
+    color: #999;
+  }
+</style>
+</head>
+<body>
+
+<div id="login-screen">
+  <h1>Soulios Family Groceries</h1>
+  <p>Enter the family password to continue</p>
+  <input type="password" id="password-input" placeholder="Password" autocomplete="off">
+  <button onclick="tryLogin()">Enter</button>
+  <div id="login-error">Incorrect password. Try again.</div>
+</div>
+
+<div id="app-screen">
+  <h1>Soulios Family Groceries</h1>
+  <div class="subtitle">Tick items we've run out of, untick items we've put in our grocery cart</div>
+  <div class="bulk-actions">
+    <button class="btn-mark-all" onclick="markAll()">Mark All</button>
+    <button class="btn-clear-all" onclick="clearAll()">Clear All</button>
+  </div>
+  <div id="grocery-list"></div>
+  <div class="counter" id="counter"></div>
+</div>
+
+<script>
+  const PASSWORD_HASH = '21d219b9286d15a9f4a4cd03534522429a1eab6ce2cad9b98d876498fe101ea7';
+  const STORAGE_KEY = 'family_grocery_checked';
+
+  const ICONS = {
+    'Milk': '🥛', 'Eggs': '🥚', 'Cheese': '🧀', 'Turkey': '🦃',
+    'Tomatoes': '🍅', 'Cucumber': '🥒', 'Apples': '🍎', 'Bananas': '🍌', 'Berries': '🫐',
+    'Corn Flakes': '🥣',
+    'Carrots': '🥕', 'Avocado': '🥑', 'Broccoli': '🥦', 'Salad Mix': '🥗', 'Other Fruit': '🍊',
+    'Toast Bread': '🍞', 'Multi-Grain Bread': '🌾',
+    'Kombuchas': '🍵', 'Sparkling Water': '💧',
+    'Protein': '🥩', 'Fish Sticks': '🐟', 'Chicken Bites': '🍗',
+    'Veggies': '🥬', 'Potatoes': '🥔',
+    'Yoghurt': '🍶', 'Cream Cheese': '🧈', 'Butter': '🧈',
+    'Peanut Butter': '🥜', 'Jelly': '🍇', 'Oatmeal': '🥣', 'Granola': '🥣', 'Fig Bars': '🍪',
+    'Pasta': '🍝', 'Onions': '🧅', 'Garlic': '🧄'
+  };
+
+  const GROCERY_DATA = [
+    { section: '🛒 Weekly Must-Haves', css: 'sec-weekly', groups: [
+      { label: 'Dairy / Fridge', items: ['Milk', 'Eggs', 'Cheese', 'Turkey'] },
+      { label: 'Produce', items: ['Tomatoes', 'Cucumber', 'Apples', 'Bananas', 'Berries'] },
+      { label: 'Cereal', items: ['Corn Flakes'] }
+    ]},
+    { section: '📦 Biweekly Extras', css: 'sec-biweekly', groups: [
+      { label: 'Produce', items: ['Carrots', 'Avocado', 'Broccoli', 'Salad Mix', 'Other Fruit'] },
+      { label: 'Bakery', items: ['Toast Bread', 'Multi-Grain Bread'] },
+      { label: 'Drinks', items: ['Kombuchas', 'Sparkling Water'] }
+    ]},
+    { section: '🍳 Cooking & Prep', css: 'sec-cooking', groups: [
+      { label: 'Main', items: ['Protein', 'Fish Sticks', 'Chicken Bites'] },
+      { label: 'Sides', items: ['Veggies', 'Potatoes'] }
+    ]},
+    { section: '🏪 Pantry Staples', css: 'sec-pantry', groups: [
+      { label: 'Fridge Spreads', items: ['Yoghurt', 'Cream Cheese', 'Butter'] },
+      { label: 'Cupboard', items: ['Peanut Butter', 'Jelly', 'Oatmeal', 'Granola', 'Fig Bars'] },
+      { label: 'Dry Goods', items: ['Pasta', 'Onions', 'Garlic'] }
+    ]}
+  ];
+
+  const ALL_ITEMS = GROCERY_DATA.flatMap(s => s.groups.flatMap(g => g.items));
+
+  function sha256(str) {
+    const k = [
+      0x428a2f98,0x71374491,0xb5c0fbcf,0xe9b5dba5,0x3956c25b,0x59f111f1,0x923f82a4,0xab1c5ed5,
+      0xd807aa98,0x12835b01,0x243185be,0x550c7dc3,0x72be5d74,0x80deb1fe,0x9bdc06a7,0xc19bf174,
+      0xe49b69c1,0xefbe4786,0x0fc19dc6,0x240ca1cc,0x2de92c6f,0x4a7484aa,0x5cb0a9dc,0x76f988da,
+      0x983e5152,0xa831c66d,0xb00327c8,0xbf597fc7,0xc6e00bf3,0xd5a79147,0x06ca6351,0x14292967,
+      0x27b70a85,0x2e1b2138,0x4d2c6dfc,0x53380d13,0x650a7354,0x766a0abb,0x81c2c92e,0x92722c85,
+      0xa2bfe8a1,0xa81a664b,0xc24b8b70,0xc76c51a3,0xd192e819,0xd6990624,0xf40e3585,0x106aa070,
+      0x19a4c116,0x1e376c08,0x2748774c,0x34b0bcb5,0x391c0cb3,0x4ed8aa4a,0x5b9cca4f,0x682e6ff3,
+      0x748f82ee,0x78a5636f,0x84c87814,0x8cc70208,0x90befffa,0xa4506ceb,0xbef9a3f7,0xc67178f2
+    ];
+    function rr(n,x){return(x>>>n)|(x<<(32-n));}
+    const bytes = new TextEncoder().encode(str);
+    const len = bytes.length;
+    const bits = len * 8;
+    const padded = new Uint8Array(((len + 9 + 63) & ~63));
+    padded.set(bytes);
+    padded[len] = 0x80;
+    const dv = new DataView(padded.buffer);
+    dv.setUint32(padded.length - 4, bits, false);
+    let [h0,h1,h2,h3,h4,h5,h6,h7] = [
+      0x6a09e667,0xbb67ae85,0x3c6ef372,0xa54ff53a,0x510e527f,0x9b05688c,0x1f83d9ab,0x5be0cd19
+    ];
+    for (let off = 0; off < padded.length; off += 64) {
+      const w = new Uint32Array(64);
+      for (let i = 0; i < 16; i++) w[i] = dv.getUint32(off + i * 4, false);
+      for (let i = 16; i < 64; i++) {
+        const s0 = rr(7,w[i-15]) ^ rr(18,w[i-15]) ^ (w[i-15]>>>3);
+        const s1 = rr(17,w[i-2]) ^ rr(19,w[i-2]) ^ (w[i-2]>>>10);
+        w[i] = (w[i-16] + s0 + w[i-7] + s1) | 0;
+      }
+      let [a,b,c,d,e,f,g,h] = [h0,h1,h2,h3,h4,h5,h6,h7];
+      for (let i = 0; i < 64; i++) {
+        const S1 = rr(6,e) ^ rr(11,e) ^ rr(25,e);
+        const ch = (e & f) ^ (~e & g);
+        const t1 = (h + S1 + ch + k[i] + w[i]) | 0;
+        const S0 = rr(2,a) ^ rr(13,a) ^ rr(22,a);
+        const maj = (a & b) ^ (a & c) ^ (b & c);
+        const t2 = (S0 + maj) | 0;
+        h=g; g=f; f=e; e=(d+t1)|0; d=c; c=b; b=a; a=(t1+t2)|0;
+      }
+      h0=(h0+a)|0; h1=(h1+b)|0; h2=(h2+c)|0; h3=(h3+d)|0;
+      h4=(h4+e)|0; h5=(h5+f)|0; h6=(h6+g)|0; h7=(h7+h)|0;
+    }
+    return [h0,h1,h2,h3,h4,h5,h6,h7].map(v=>(v>>>0).toString(16).padStart(8,'0')).join('');
+  }
+
+  function tryLogin() {
+    const input = document.getElementById('password-input').value;
+    const hash = sha256(input);
+    if (hash === PASSWORD_HASH) {
+      document.getElementById('login-screen').style.display = 'none';
+      document.getElementById('app-screen').style.display = 'block';
+      renderList();
+    } else {
+      document.getElementById('login-error').style.display = 'block';
+    }
+  }
+
+  document.getElementById('password-input').addEventListener('keydown', function(e) {
+    if (e.key === 'Enter') tryLogin();
+  });
+
+  let _checkedCache = [];
+
+  function getChecked() {
+    try {
+      const stored = localStorage.getItem(STORAGE_KEY);
+      if (stored) _checkedCache = JSON.parse(stored);
+    } catch {}
+    return _checkedCache;
+  }
+
+  function saveChecked(arr) {
+    _checkedCache = arr;
+    try { localStorage.setItem(STORAGE_KEY, JSON.stringify(arr)); } catch {}
+  }
+
+  function toggleItem(name) {
+    let checked = getChecked();
+    if (checked.includes(name)) {
+      checked = checked.filter(n => n !== name);
+    } else {
+      checked.push(name);
+    }
+    saveChecked(checked);
+    renderList();
+  }
+
+  function markAll() {
+    saveChecked([...ALL_ITEMS]);
+    renderList();
+  }
+
+  function clearAll() {
+    saveChecked([]);
+    renderList();
+  }
+
+  function renderList() {
+    const container = document.getElementById('grocery-list');
+    const checked = getChecked();
+    let html = '';
+    GROCERY_DATA.forEach(section => {
+      html += '<div class="section">';
+      html += '<div class="section-header ' + section.css + '">' + section.section + '</div>';
+      section.groups.forEach(group => {
+        html += '<div class="sub-label">' + group.label + '</div>';
+        html += '<ul>';
+        group.items.forEach(item => {
+          const isChecked = checked.includes(item);
+          html += '<li class="' + (isChecked ? 'checked' : '') + '" onclick="toggleItem(\'' + item.replace(/'/g, "\\'") + '\')">';
+          html += '<div class="checkbox"></div>';
+          html += '<span class="item-icon">' + (ICONS[item] || '🔹') + '</span>';
+          html += '<span class="item-name">' + item + '</span>';
+          html += '</li>';
+        });
+        html += '</ul>';
+      });
+      html += '</div>';
+    });
+    container.innerHTML = html;
+    const count = checked.filter(c => ALL_ITEMS.includes(c)).length;
+    document.getElementById('counter').textContent = count + ' of ' + ALL_ITEMS.length + ' items marked';
+  }
+</script>
+
+</body>
+</html>
