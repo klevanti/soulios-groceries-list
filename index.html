@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Soulios Soulios Family Groceries</title>
+<title>Soulios Family Groceries</title>
 <style>
   * { margin: 0; padding: 0; box-sizing: border-box; }
   body {
@@ -78,6 +78,14 @@
     font-size: 13px;
     margin-bottom: 20px;
   }
+  .sync-status {
+    text-align: center;
+    font-size: 12px;
+    color: #aaa;
+    margin-bottom: 12px;
+  }
+  .sync-status.connected { color: #2d6a4f; }
+  .sync-status.disconnected { color: #d00; }
 
   .bulk-actions {
     display: flex;
@@ -194,6 +202,7 @@
 <div id="app-screen">
   <h1>Soulios Family Groceries</h1>
   <div class="subtitle">Tick items we've run out of, untick items we've put in our grocery cart</div>
+  <div class="sync-status" id="sync-status">Connecting...</div>
   <div class="bulk-actions">
     <button class="btn-mark-all" onclick="markAll()">Mark All</button>
     <button class="btn-clear-all" onclick="clearAll()">Clear All</button>
@@ -202,9 +211,24 @@
   <div class="counter" id="counter"></div>
 </div>
 
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
 <script>
   const PASSWORD_HASH = '21d219b9286d15a9f4a4cd03534522429a1eab6ce2cad9b98d876498fe101ea7';
-  const STORAGE_KEY = 'family_grocery_checked';
+
+  const firebaseConfig = {
+    apiKey: "AIzaSyCaZ-fW8BEAp903dO4f4Cmv0b-Riv9b7h4",
+    authDomain: "soulios-groceries.firebaseapp.com",
+    databaseURL: "https://soulios-groceries-default-rtdb.firebaseio.com",
+    projectId: "soulios-groceries",
+    storageBucket: "soulios-groceries.firebasestorage.app",
+    messagingSenderId: "985620779246",
+    appId: "1:985620779246:web:56436f4a56ca72dfc6e3ff"
+  };
+
+  firebase.initializeApp(firebaseConfig);
+  const db = firebase.database();
+  const checkedRef = db.ref('checkedItems');
 
   const ICONS = {
     'Milk': '🥛', 'Eggs': '🥚', 'Cheese': '🧀', 'Turkey': '🦃',
@@ -291,13 +315,15 @@
     return [h0,h1,h2,h3,h4,h5,h6,h7].map(v=>(v>>>0).toString(16).padStart(8,'0')).join('');
   }
 
+  let _checkedCache = [];
+
   function tryLogin() {
     const input = document.getElementById('password-input').value;
     const hash = sha256(input);
     if (hash === PASSWORD_HASH) {
       document.getElementById('login-screen').style.display = 'none';
       document.getElementById('app-screen').style.display = 'block';
-      renderList();
+      startSync();
     } else {
       document.getElementById('login-error').style.display = 'block';
     }
@@ -307,45 +333,54 @@
     if (e.key === 'Enter') tryLogin();
   });
 
-  let _checkedCache = [];
+  function startSync() {
+    const statusEl = document.getElementById('sync-status');
 
-  function getChecked() {
-    try {
-      const stored = localStorage.getItem(STORAGE_KEY);
-      if (stored) _checkedCache = JSON.parse(stored);
-    } catch {}
-    return _checkedCache;
+    db.ref('.info/connected').on('value', function(snap) {
+      if (snap.val() === true) {
+        statusEl.textContent = 'Synced';
+        statusEl.className = 'sync-status connected';
+      } else {
+        statusEl.textContent = 'Offline — changes will sync when reconnected';
+        statusEl.className = 'sync-status disconnected';
+      }
+    });
+
+    checkedRef.on('value', function(snapshot) {
+      const data = snapshot.val();
+      _checkedCache = data ? Object.keys(data).filter(k => data[k]) : [];
+      renderList();
+    });
   }
 
   function saveChecked(arr) {
     _checkedCache = arr;
-    try { localStorage.setItem(STORAGE_KEY, JSON.stringify(arr)); } catch {}
+    const update = {};
+    ALL_ITEMS.forEach(item => { update[item] = arr.includes(item); });
+    checkedRef.set(update);
   }
 
   function toggleItem(name) {
-    let checked = getChecked();
+    let checked = [..._checkedCache];
     if (checked.includes(name)) {
       checked = checked.filter(n => n !== name);
     } else {
       checked.push(name);
     }
     saveChecked(checked);
-    renderList();
   }
 
   function markAll() {
     saveChecked([...ALL_ITEMS]);
-    renderList();
   }
 
   function clearAll() {
     saveChecked([]);
-    renderList();
   }
 
   function renderList() {
     const container = document.getElementById('grocery-list');
-    const checked = getChecked();
+    const checked = _checkedCache;
     let html = '';
     GROCERY_DATA.forEach(section => {
       html += '<div class="section">';
