@@ -176,10 +176,46 @@
     transform: rotate(45deg);
     margin-bottom: 2px;
   }
+  .item-content {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+  }
   .item-name {
     font-size: 16px;
     color: #333;
     transition: color 0.2s;
+  }
+  .item-note {
+    font-size: 12px;
+    color: #aaa;
+    margin-top: 2px;
+    font-style: italic;
+  }
+  .note-btn {
+    background: none;
+    border: none;
+    cursor: pointer;
+    font-size: 15px;
+    padding: 4px 6px;
+    color: #ccc;
+    flex-shrink: 0;
+    margin-left: 6px;
+    border-radius: 6px;
+    transition: color 0.15s, background 0.15s;
+    line-height: 1;
+  }
+  .note-btn:hover { color: #2d6a4f; background: #e8f5e9; }
+  .note-btn.has-note { color: #2d6a4f; }
+  .note-input {
+    font-size: 12px;
+    border: 1.5px solid #2d6a4f;
+    border-radius: 6px;
+    padding: 3px 8px;
+    margin-top: 3px;
+    width: 100%;
+    outline: none;
+    color: #333;
   }
   .counter {
     text-align: center;
@@ -214,7 +250,7 @@
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
 <script>
-  const PASSWORD_HASH = '21d219b9286d15a9f4a4cd03534522429a1eab6ce2cad9b98d876498fe101ea7';
+  const PASSWORD_HASH = 'dee84e7bce59311eac6e7599978e7fe85c986fec1e35f812f86960829060c15c';
 
   const firebaseConfig = {
     apiKey: "AIzaSyCaZ-fW8BEAp903dO4f4Cmv0b-Riv9b7h4",
@@ -229,16 +265,17 @@
   firebase.initializeApp(firebaseConfig);
   const db = firebase.database();
   const checkedRef = db.ref('checkedItems');
+  const notesRef = db.ref('itemNotes');
 
   const ICONS = {
     'Milk': '🥛', 'Eggs': '🥚', 'Cheese': '🧀', 'Turkey': '🦃',
     'Tomatoes': '🍅', 'Cucumber': '🥒', 'Apples': '🍎', 'Bananas': '🍌', 'Berries': '🫐',
     'Corn Flakes': '🥣',
     'Carrots': '🥕', 'Avocado': '🥑', 'Broccoli': '🥦', 'Salad Mix': '🥗', 'Other Fruit': '🍊',
-    'Toast Bread': '🍞', 'Multi-Grain Bread': '🌾',
+    'Toast Bread': '🍞', 'Multi-Grain Bread': '🌾', 'Burger Buns': '🍔',
     'Kombuchas': '🍵', 'Sparkling Water': '💧',
     'Protein': '🥩', 'Fish Sticks': '🐟', 'Chicken Bites': '🍗',
-    'Veggies': '🥬', 'Potatoes': '🥔',
+    'Veggies': '🥬', 'Potatoes': '🥔', 'Other': '🛒',
     'Yoghurt': '🍶', 'Cream Cheese': '🧈', 'Butter': '🧈',
     'Peanut Butter': '🥜', 'Jelly': '🍇', 'Oatmeal': '🥣', 'Granola': '🥣', 'Fig Bars': '🍪',
     'Pasta': '🍝', 'Onions': '🧅', 'Garlic': '🧄'
@@ -248,19 +285,19 @@
     { section: '🛒 Weekly Must-Haves', css: 'sec-weekly', groups: [
       { label: 'Dairy / Fridge', items: ['Milk', 'Eggs', 'Cheese', 'Turkey'] },
       { label: 'Produce', items: ['Tomatoes', 'Cucumber', 'Apples', 'Bananas', 'Berries'] },
-      { label: 'Cereal', items: ['Corn Flakes'] }
+      { label: 'Other', items: ['Corn Flakes', 'Other'] }
     ]},
     { section: '📦 Biweekly Extras', css: 'sec-biweekly', groups: [
       { label: 'Produce', items: ['Carrots', 'Avocado', 'Broccoli', 'Salad Mix', 'Other Fruit'] },
-      { label: 'Bakery', items: ['Toast Bread', 'Multi-Grain Bread'] },
+      { label: 'Bakery', items: ['Toast Bread', 'Multi-Grain Bread', 'Burger Buns'] },
       { label: 'Drinks', items: ['Kombuchas', 'Sparkling Water'] }
     ]},
     { section: '🍳 Cooking & Prep', css: 'sec-cooking', groups: [
-      { label: 'Main', items: ['Protein', 'Fish Sticks', 'Chicken Bites'] },
-      { label: 'Sides', items: ['Veggies', 'Potatoes'] }
+      { label: 'Main', items: ['Protein', 'Veggies', 'Potatoes', 'Other'] },
+      { label: 'Frozen', items: ['Fish Sticks', 'Chicken Bites'] }
     ]},
     { section: '🏪 Pantry Staples', css: 'sec-pantry', groups: [
-      { label: 'Fridge Spreads', items: ['Yoghurt', 'Cream Cheese', 'Butter'] },
+      { label: 'Dairy', items: ['Yoghurt', 'Cream Cheese', 'Butter'] },
       { label: 'Cupboard', items: ['Peanut Butter', 'Jelly', 'Oatmeal', 'Granola', 'Fig Bars'] },
       { label: 'Dry Goods', items: ['Pasta', 'Onions', 'Garlic'] }
     ]}
@@ -316,6 +353,7 @@
   }
 
   let _checkedCache = [];
+  let _notesCache = {};
 
   function tryLogin() {
     const input = document.getElementById('password-input').value;
@@ -351,6 +389,11 @@
       _checkedCache = data ? Object.keys(data).filter(k => data[k]) : [];
       renderList();
     });
+
+    notesRef.on('value', function(snapshot) {
+      _notesCache = snapshot.val() || {};
+      renderList();
+    });
   }
 
   function saveChecked(arr) {
@@ -368,6 +411,38 @@
       checked.push(name);
     }
     saveChecked(checked);
+  }
+
+  function saveNote(itemName, text) {
+    _notesCache[itemName] = text;
+    notesRef.child(itemName.replace(/[.#$[\]]/g, '_')).set(text || null);
+    renderList();
+  }
+
+  function openNote(itemName) {
+    const key = 'note-' + itemName;
+    const li = document.querySelector('[data-item="' + itemName.replace(/"/g, '&quot;') + '"]');
+    if (!li) return;
+    const noteEl = li.querySelector('.item-note');
+    const btn = li.querySelector('.note-btn');
+    const currentNote = _notesCache[itemName] || '';
+
+    const input = document.createElement('input');
+    input.type = 'text';
+    input.className = 'note-input';
+    input.value = currentNote;
+    input.placeholder = 'Add a note...';
+    input.onclick = e => e.stopPropagation();
+    input.onkeydown = function(e) {
+      e.stopPropagation();
+      if (e.key === 'Enter') { saveNote(itemName, input.value.trim()); }
+      if (e.key === 'Escape') { renderList(); }
+    };
+
+    noteEl.replaceWith(input);
+    btn.textContent = '✓';
+    btn.onclick = function(e) { e.stopPropagation(); saveNote(itemName, input.value.trim()); };
+    input.focus();
   }
 
   function markAll() {
@@ -390,10 +465,17 @@
         html += '<ul>';
         group.items.forEach(item => {
           const isChecked = checked.includes(item);
-          html += '<li class="' + (isChecked ? 'checked' : '') + '" onclick="toggleItem(\'' + item.replace(/'/g, "\\'") + '\')">';
+          const note = _notesCache[item] || '';
+          const safeItem = item.replace(/'/g, "\\'");
+          const safeAttr = item.replace(/"/g, '&quot;');
+          html += '<li class="' + (isChecked ? 'checked' : '') + '" data-item="' + safeAttr + '" onclick="toggleItem(\'' + safeItem + '\')">';
           html += '<div class="checkbox"></div>';
           html += '<span class="item-icon">' + (ICONS[item] || '🔹') + '</span>';
+          html += '<div class="item-content">';
           html += '<span class="item-name">' + item + '</span>';
+          html += '<span class="item-note">' + note.replace(/</g, '&lt;') + '</span>';
+          html += '</div>';
+          html += '<button class="note-btn' + (note ? ' has-note' : '') + '" onclick="event.stopPropagation(); openNote(\'' + safeItem + '\')">✏️</button>';
           html += '</li>';
         });
         html += '</ul>';
