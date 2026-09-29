@@ -181,6 +181,21 @@
     color: #333;
     transition: color 0.2s;
   }
+  .item-note {
+    width: 100%;
+    margin-top: 6px;
+    padding: 6px 10px;
+    border: 1px solid #ddd;
+    border-radius: 6px;
+    font-size: 13px;
+    font-family: inherit;
+    color: #555;
+    outline: none;
+    transition: border-color 0.2s;
+  }
+  .item-note:focus { border-color: #2d6a4f; }
+  .item-note::placeholder { color: #bbb; }
+  li.has-note { flex-wrap: wrap; }
   .counter {
     text-align: center;
     margin-top: 20px;
@@ -214,7 +229,7 @@
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
 <script>
-  const PASSWORD_HASH = '21d219b9286d15a9f4a4cd03534522429a1eab6ce2cad9b98d876498fe101ea7';
+  const PASSWORD_HASH = 'dee84e7bce59311eac6e7599978e7fe85c986fec1e35f812f86960829060c15c';
 
   const firebaseConfig = {
     apiKey: "AIzaSyCaZ-fW8BEAp903dO4f4Cmv0b-Riv9b7h4",
@@ -229,6 +244,9 @@
   firebase.initializeApp(firebaseConfig);
   const db = firebase.database();
   const checkedRef = db.ref('checkedItems');
+  const notesRef = db.ref('itemNotes');
+  const NOTES_ITEMS = ['Other Fruit', 'Other Ingredients', 'Kids Snacks'];
+  let _notesCache = {};
 
   const ICONS = {
     'Milk': '🥛', 'Eggs': '🥚', 'Cheese': '🧀', 'Turkey': '🦃',
@@ -353,6 +371,11 @@
       _checkedCache = data ? Object.keys(data).filter(k => data[k]) : [];
       renderList();
     });
+
+    notesRef.on('value', function(snapshot) {
+      _notesCache = snapshot.val() || {};
+      updateNotesUI();
+    });
   }
 
   function saveChecked(arr) {
@@ -380,6 +403,20 @@
     saveChecked([]);
   }
 
+  function saveNote(item, value) {
+    _notesCache[item] = value;
+    notesRef.child(item).set(value);
+  }
+
+  function updateNotesUI() {
+    NOTES_ITEMS.forEach(item => {
+      const input = document.getElementById('note-' + item.replace(/\s/g, '-'));
+      if (input && document.activeElement !== input) {
+        input.value = _notesCache[item] || '';
+      }
+    });
+  }
+
   function renderList() {
     const container = document.getElementById('grocery-list');
     const checked = _checkedCache;
@@ -392,10 +429,19 @@
         html += '<ul>';
         group.items.forEach(item => {
           const isChecked = checked.includes(item);
-          html += '<li class="' + (isChecked ? 'checked' : '') + '" onclick="toggleItem(\'' + item.replace(/'/g, "\\'") + '\')">';
+          const hasNote = NOTES_ITEMS.includes(item);
+          const escaped = item.replace(/'/g, "\\'");
+          html += '<li class="' + (isChecked ? 'checked' : '') + (hasNote ? ' has-note' : '') + '">';
+          html += '<div style="display:flex;align-items:center;width:100%" onclick="toggleItem(\'' + escaped + '\')">';
           html += '<div class="checkbox"></div>';
           html += '<span class="item-icon">' + (ICONS[item] || '🔹') + '</span>';
           html += '<span class="item-name">' + item + '</span>';
+          html += '</div>';
+          if (hasNote) {
+            const noteId = 'note-' + item.replace(/\s/g, '-');
+            const noteVal = (_notesCache[item] || '').replace(/"/g, '&quot;');
+            html += '<input class="item-note" id="' + noteId + '" type="text" placeholder="Add a note..." value="' + noteVal + '" onclick="event.stopPropagation()" oninput="saveNote(\'' + escaped + '\', this.value)">';
+          }
           html += '</li>';
         });
         html += '</ul>';
