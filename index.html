@@ -76,8 +76,34 @@
   #app-screen .subtitle {
     color: #888;
     font-size: 13px;
-    margin-bottom: 20px;
+    margin-bottom: 16px;
   }
+
+  .tab-bar {
+    display: flex;
+    gap: 0;
+    margin-bottom: 16px;
+    border-radius: 10px;
+    overflow: hidden;
+    border: 2px solid #2d6a4f;
+  }
+  .tab-btn {
+    flex: 1;
+    padding: 10px 0;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    border: none;
+    background: #fff;
+    color: #2d6a4f;
+    transition: all 0.2s;
+  }
+  .tab-btn.active {
+    background: #2d6a4f;
+    color: #fff;
+  }
+  .tab-btn:not(.active):hover { background: #e8f5e9; }
+
   .sync-status {
     text-align: center;
     font-size: 12px;
@@ -121,6 +147,11 @@
   .section-header.sec-biweekly { color: #1565c0; background: #e3f2fd; }
   .section-header.sec-cooking { color: #e65100; background: #fff3e0; }
   .section-header.sec-pantry { color: #6a1b9a; background: #f3e5f5; }
+  .section-header.sec-detergents { color: #c62828; background: #ffebee; }
+  .section-header.sec-paper { color: #0277bd; background: #e1f5fe; }
+  .section-header.sec-household { color: #2e7d32; background: #e8f5e9; }
+  .section-header.sec-personal { color: #ad1457; background: #fce4ec; }
+  .section-header.sec-baby { color: #6a1b9a; background: #f3e5f5; }
   .sub-label {
     font-size: 12px;
     font-weight: 600;
@@ -217,6 +248,10 @@
 <div id="app-screen">
   <h1>Soulios Family Groceries</h1>
   <div class="subtitle">Tick items we've run out of, untick items we've put in our grocery cart</div>
+  <div class="tab-bar">
+    <button class="tab-btn active" onclick="switchTab('weekly')">Weekly</button>
+    <button class="tab-btn" onclick="switchTab('costco')">Costco</button>
+  </div>
   <div class="sync-status" id="sync-status">Connecting...</div>
   <div class="bulk-actions">
     <button class="btn-mark-all" onclick="markAll()">Mark All</button>
@@ -243,7 +278,6 @@
 
   firebase.initializeApp(firebaseConfig);
   const db = firebase.database();
-  const checkedRef = db.ref('checkedItems');
   const notesRef = db.ref('itemNotes');
   const NOTES_ITEMS = ['Other Fruit', 'Other Ingredients', 'Kids Snacks'];
   let _notesCache = {};
@@ -260,10 +294,15 @@
     'Yoghurt': '🍶', 'Cream Cheese': '🧈', 'Butter': '🧈',
     'Peanut Butter': '🥜', 'Jelly': '🍇', 'Oatmeal': '🥣', 'Granola': '🥣', 'Fig Bars': '🍪',
     'Cheese Sticks': '🧀', 'Cheese Triangles': '🧀', 'Kids Snacks': '🍬', 'Feta Cheese': '🧀', 'Other Ingredients': '🛒',
-    'Pasta': '🍝', 'Onions': '🧅', 'Garlic': '🧄'
+    'Pasta': '🍝', 'Onions': '🧅', 'Garlic': '🧄',
+    'Laundry': '🧺', 'Dishwasher': '🍽️', 'Palmolive': '🧴', 'Hand Soap': '🧼',
+    'Toilet Paper': '🧻', 'Flushable Wipes': '🧻', 'Napkins': '🧻', 'Tissues': '🤧', 'Bounty': '🧻',
+    'Trash Bags': '🗑️', 'Compost Bags': '♻️',
+    'Shampoo': '🧴', 'Conditioner': '🧴', 'Toothpaste': '🪥',
+    'Diapers': '👶', 'Wipes': '🧻'
   };
 
-  const GROCERY_DATA = [
+  const WEEKLY_DATA = [
     { section: '🛒 Weekly Must-Haves', css: 'sec-weekly', groups: [
       { label: 'Dairy / Fridge', items: ['Milk', 'Eggs', 'Cheese', 'Cheese Sticks', 'Cheese Triangles', 'Turkey'] },
       { label: 'Produce', items: ['Tomatoes', 'Cucumber', 'Apples', 'Bananas', 'Berries'] },
@@ -285,7 +324,34 @@
     ]}
   ];
 
-  const ALL_ITEMS = GROCERY_DATA.flatMap(s => s.groups.flatMap(g => g.items));
+  const COSTCO_DATA = [
+    { section: '🧴 Detergents', css: 'sec-detergents', groups: [
+      { label: '', items: ['Laundry', 'Dishwasher', 'Palmolive', 'Hand Soap'] }
+    ]},
+    { section: '🧻 Paper Items', css: 'sec-paper', groups: [
+      { label: '', items: ['Toilet Paper', 'Flushable Wipes', 'Napkins', 'Tissues', 'Bounty'] }
+    ]},
+    { section: '🏠 Household Stuff', css: 'sec-household', groups: [
+      { label: '', items: ['Trash Bags', 'Compost Bags'] }
+    ]},
+    { section: '🧴 Personal Care', css: 'sec-personal', groups: [
+      { label: '', items: ['Shampoo', 'Conditioner', 'Toothpaste'] }
+    ]},
+    { section: '👶 Baby Stuff', css: 'sec-baby', groups: [
+      { label: '', items: ['Diapers', 'Wipes'] }
+    ]}
+  ];
+
+  const TABS = {
+    weekly: { data: WEEKLY_DATA, ref: db.ref('checkedItems'), cache: [] },
+    costco: { data: COSTCO_DATA, ref: db.ref('costcoCheckedItems'), cache: [] }
+  };
+
+  let activeTab = 'weekly';
+
+  function getAllItems(tabKey) {
+    return TABS[tabKey].data.flatMap(s => s.groups.flatMap(g => g.items));
+  }
 
   function sha256(str) {
     const k = [
@@ -334,8 +400,6 @@
     return [h0,h1,h2,h3,h4,h5,h6,h7].map(v=>(v>>>0).toString(16).padStart(8,'0')).join('');
   }
 
-  let _checkedCache = [];
-
   function tryLogin() {
     const input = document.getElementById('password-input').value;
     const hash = sha256(input);
@@ -352,6 +416,14 @@
     if (e.key === 'Enter') tryLogin();
   });
 
+  function switchTab(tabKey) {
+    activeTab = tabKey;
+    document.querySelectorAll('.tab-btn').forEach(btn => {
+      btn.classList.toggle('active', btn.textContent.toLowerCase() === tabKey);
+    });
+    renderList();
+  }
+
   function startSync() {
     const statusEl = document.getElementById('sync-status');
 
@@ -365,10 +437,12 @@
       }
     });
 
-    checkedRef.on('value', function(snapshot) {
-      const data = snapshot.val();
-      _checkedCache = data ? Object.keys(data).filter(k => data[k]) : [];
-      renderList();
+    Object.keys(TABS).forEach(key => {
+      TABS[key].ref.on('value', function(snapshot) {
+        const data = snapshot.val();
+        TABS[key].cache = data ? Object.keys(data).filter(k => data[k]) : [];
+        if (key === activeTab) renderList();
+      });
     });
 
     notesRef.on('value', function(snapshot) {
@@ -378,14 +452,15 @@
   }
 
   function saveChecked(arr) {
-    _checkedCache = arr;
+    const tab = TABS[activeTab];
+    tab.cache = arr;
     const update = {};
-    ALL_ITEMS.forEach(item => { update[item] = arr.includes(item); });
-    checkedRef.set(update);
+    getAllItems(activeTab).forEach(item => { update[item] = arr.includes(item); });
+    tab.ref.set(update);
   }
 
   function toggleItem(name) {
-    let checked = [..._checkedCache];
+    let checked = [...TABS[activeTab].cache];
     if (checked.includes(name)) {
       checked = checked.filter(n => n !== name);
     } else {
@@ -395,7 +470,7 @@
   }
 
   function markAll() {
-    saveChecked([...ALL_ITEMS]);
+    saveChecked([...getAllItems(activeTab)]);
   }
 
   function clearAll() {
@@ -418,13 +493,15 @@
 
   function renderList() {
     const container = document.getElementById('grocery-list');
-    const checked = _checkedCache;
+    const tab = TABS[activeTab];
+    const checked = tab.cache;
+    const allItems = getAllItems(activeTab);
     let html = '';
-    GROCERY_DATA.forEach(section => {
+    tab.data.forEach(section => {
       html += '<div class="section">';
       html += '<div class="section-header ' + section.css + '">' + section.section + '</div>';
       section.groups.forEach(group => {
-        html += '<div class="sub-label">' + group.label + '</div>';
+        if (group.label) html += '<div class="sub-label">' + group.label + '</div>';
         html += '<ul>';
         group.items.forEach(item => {
           const isChecked = checked.includes(item);
@@ -448,8 +525,8 @@
       html += '</div>';
     });
     container.innerHTML = html;
-    const count = checked.filter(c => ALL_ITEMS.includes(c)).length;
-    document.getElementById('counter').textContent = count + ' of ' + ALL_ITEMS.length + ' items marked';
+    const count = checked.filter(c => allItems.includes(c)).length;
+    document.getElementById('counter').textContent = count + ' of ' + allItems.length + ' items marked';
   }
 </script>
 
