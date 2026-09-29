@@ -154,6 +154,7 @@
   .section-header.sec-paper { color: #0277bd; background: #e1f5fe; }
   .section-header.sec-household { color: #2e7d32; background: #e8f5e9; }
   .section-header.sec-personal { color: #ad1457; background: #fce4ec; }
+  .section-header.sec-other { color: #546e7a; background: #eceff1; }
   .section-header.sec-personal-stuff { color: #37474f; background: #eceff1; }
   .section-header.sec-baby { color: #6a1b9a; background: #f3e5f5; }
   .sub-label {
@@ -283,7 +284,7 @@
   firebase.initializeApp(firebaseConfig);
   const db = firebase.database();
   const notesRef = db.ref('itemNotes');
-  const NOTES_ITEMS = ['Other Fruit', 'Other Ingredients', 'Kids Snacks', 'C-Fruit', 'C-Vegetable', 'C-Dairy', 'C-Protein'];
+  const NOTES_ITEMS = ['Other Fruit', 'Other Ingredients', 'Kids Snacks', 'C-Fruit', 'C-Vegetable', 'C-Dairy', 'C-Protein', 'One-Off Items'];
   let _notesCache = {};
 
   const ICONS = {
@@ -306,7 +307,7 @@
     'Toilet Paper': '🧻', 'Flushable Wipes': '🧻', 'Napkins': '🧻', 'Tissues': '🤧', 'Bounty': '🧻',
     'Trash Bags': '🗑️', 'Compost Bags': '♻️',
     'Shampoo': '🧴', 'Conditioner': '🧴', 'Toothpaste': '🪥', 'Body Wash': '🧴',
-    'Clorox Wipes': '🧽',
+    'Clorox Wipes': '🧽', 'One-Off Items': '📝',
     'Pocket Tissues': '🤧', 'Cotton Pads': '🧶', 'Medicine': '💊', 'Vitamins': '💊',
     'Diapers': '👶', 'Wipes': '🧻'
   };
@@ -360,6 +361,9 @@
     ]},
     { section: '👶 Baby Stuff', css: 'sec-baby', groups: [
       { label: '', items: ['Diapers', 'Wipes'] }
+    ]},
+    { section: '📋 Other', css: 'sec-other', groups: [
+      { label: '', items: ['One-Off Items'] }
     ]}
   ];
 
