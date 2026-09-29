@@ -154,6 +154,7 @@
   .section-header.sec-paper { color: #0277bd; background: #e1f5fe; }
   .section-header.sec-household { color: #2e7d32; background: #e8f5e9; }
   .section-header.sec-personal { color: #ad1457; background: #fce4ec; }
+  .section-header.sec-personal-stuff { color: #37474f; background: #eceff1; }
   .section-header.sec-baby { color: #6a1b9a; background: #f3e5f5; }
   .sub-label {
     font-size: 12px;
@@ -301,10 +302,12 @@
     'C-Fruit': '🍎', 'C-Vegetable': '🥦', 'C-Dairy': '🧀', 'C-Protein': '🥩',
     'Wine': '🍷', 'Beer': '🍺', 'C-Sparkling Water': '💧',
     'Backup Milk': '🥛', 'Coffee Beans': '☕', 'C-Cereal': '🥣', 'C-Kids Snacks': '🍬',
-    'Laundry': '🧺', 'Dishwasher': '🍽️', 'Palmolive': '🧴', 'Hand Soap': '🧼',
+    'Laundry Detergent': '🧺', 'Dishwasher Detergent': '🍽️', 'Palmolive': '🧴', 'Hand Soap': '🧼',
     'Toilet Paper': '🧻', 'Flushable Wipes': '🧻', 'Napkins': '🧻', 'Tissues': '🤧', 'Bounty': '🧻',
     'Trash Bags': '🗑️', 'Compost Bags': '♻️',
     'Shampoo': '🧴', 'Conditioner': '🧴', 'Toothpaste': '🪥', 'Body Wash': '🧴',
+    'Clorox Wipes': '🧽',
+    'Pocket Tissues': '🤧', 'Cotton Pads': '🧶', 'Medicine': '💊', 'Vitamins': '💊',
     'Diapers': '👶', 'Wipes': '🧻'
   };
 
@@ -341,16 +344,19 @@
       { label: '', items: ['Backup Milk', 'Coffee Beans', 'C-Cereal', 'C-Kids Snacks'] }
     ]},
     { section: '🧹 Cleaning Supplies', css: 'sec-cleaning', groups: [
-      { label: '', items: ['Laundry', 'Dishwasher', 'Palmolive', 'Hand Soap'] }
+      { label: '', items: ['Laundry Detergent', 'Dishwasher Detergent', 'Palmolive', 'Hand Soap'] }
     ]},
     { section: '🧻 Paper Items', css: 'sec-paper', groups: [
       { label: '', items: ['Toilet Paper', 'Flushable Wipes', 'Napkins', 'Tissues', 'Bounty'] }
     ]},
     { section: '🏠 Household Stuff', css: 'sec-household', groups: [
-      { label: '', items: ['Trash Bags', 'Compost Bags'] }
+      { label: '', items: ['Trash Bags', 'Compost Bags', 'Clorox Wipes'] }
     ]},
     { section: '🧴 Personal Care', css: 'sec-personal', groups: [
       { label: '', items: ['Shampoo', 'Conditioner', 'Toothpaste', 'Body Wash'] }
+    ]},
+    { section: '🎒 Personal Stuff', css: 'sec-personal-stuff', groups: [
+      { label: '', items: ['Pocket Tissues', 'Cotton Pads', 'Medicine', 'Vitamins'] }
     ]},
     { section: '👶 Baby Stuff', css: 'sec-baby', groups: [
       { label: '', items: ['Diapers', 'Wipes'] }
