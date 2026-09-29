@@ -299,7 +299,7 @@
     'Yoghurt': '🍶', 'Cream Cheese': '🧈', 'Butter': '🧈',
     'Peanut Butter': '🥜', 'Jelly': '🍇', 'Oatmeal': '🥣', 'Granola': '🥣', 'Fig Bars': '🍪',
     'Cheese Sticks': '🧀', 'Cheese Triangles': '🧀', 'Kids Snacks': '🍬', 'Feta Cheese': '🧀', 'Other Ingredients': '🛒',
-    'Pasta': '🍝', 'Onions': '🧅', 'Garlic': '🧄',
+    'Pasta': '🍝', 'Onions': '🧅', 'Garlic': '🧄', 'Mac n Cheese': '🧀',
     'C-Fruit': '🍎', 'C-Vegetable': '🥦', 'C-Dairy': '🧀', 'C-Protein': '🥩',
     'Wine': '🍷', 'Beer': '🍺', 'C-Sparkling Water': '💧',
     'Backup Milk': '🥛', 'Coffee Beans': '☕', 'C-Cereal': '🥣', 'C-Kids Snacks': '🍬',
@@ -330,7 +330,7 @@
     { section: '🏪 Pantry Staples', css: 'sec-pantry', groups: [
       { label: 'Fridge Spreads', items: ['Yoghurt', 'Cream Cheese', 'Feta Cheese', 'Butter'] },
       { label: 'Cupboard', items: ['Peanut Butter', 'Jelly', 'Oatmeal', 'Granola', 'Fig Bars'] },
-      { label: 'Dry Goods', items: ['Pasta', 'Onions', 'Garlic'] }
+      { label: 'Dry Goods', items: ['Pasta', 'Onions', 'Garlic', 'Mac n Cheese'] }
     ]}
   ];
 
@@ -479,6 +479,7 @@
   function saveChecked(arr) {
     const tab = TABS[activeTab];
     tab.cache = arr;
+    renderList();
     const update = {};
     getAllItems(activeTab).forEach(item => { update[item] = arr.includes(item); });
     tab.ref.set(update);
