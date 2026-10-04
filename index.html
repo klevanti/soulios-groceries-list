@@ -284,7 +284,7 @@
   firebase.initializeApp(firebaseConfig);
   const db = firebase.database();
   const notesRef = db.ref('itemNotes');
-  const NOTES_ITEMS = ['Other Fruit', 'Other Ingredients', 'Kids Snacks', 'C-Fruit', 'C-Vegetable', 'C-Dairy', 'C-Protein', 'One-Off Items'];
+  const NOTES_ITEMS = ['Other Fruit', 'Other Ingredients', 'Kids Snacks', 'Breakfast Options', 'C-Fruit', 'C-Vegetable', 'C-Dairy', 'C-Protein', 'One-Off Items'];
   let _notesCache = {};
 
   const ICONS = {
@@ -298,7 +298,7 @@
     'Veggies': '🥬', 'Potatoes': '🥔',
     'Yoghurt': '🍶', 'Cream Cheese': '🧈', 'Butter': '🧈',
     'Peanut Butter': '🥜', 'Jelly': '🍇', 'Oatmeal': '🥣', 'Granola': '🥣', 'Fig Bars': '🍪',
-    'Cheese Sticks': '🧀', 'Cheese Triangles': '🧀', 'Kids Snacks': '🍬', 'Feta Cheese': '🧀', 'Grated Cheese': '🧀', 'Other Ingredients': '🛒', 'Mini Pancakes': '🥞',
+    'Cheese Sticks': '🧀', 'Cheese Triangles': '🧀', 'Kids Snacks': '🍬', 'Feta Cheese': '🧀', 'Grated Cheese': '🧀', 'Other Ingredients': '🛒', 'Mini Pancakes': '🥞', 'Breakfast Options': '🍳',
     'Pasta': '🍝', 'Onions': '🧅', 'Garlic': '🧄', 'Mac n Cheese': '🧀',
     'C-Fruit': '🍎', 'C-Vegetable': '🥦', 'C-Dairy': '🧀', 'C-Protein': '🥩',
     'Wine': '🍷', 'Beer': '🍺', 'C-Sparkling Water': '💧',
@@ -325,7 +325,7 @@
     ]},
     { section: '🍳 Cooking & Prep', css: 'sec-cooking', groups: [
       { label: 'Main', items: ['Protein', 'Veggies', 'Potatoes', 'Other Ingredients'] },
-      { label: 'Frozen', items: ['Fish Sticks', 'Chicken Bites', 'Mini Pancakes'] }
+      { label: 'Frozen', items: ['Fish Sticks', 'Chicken Bites', 'Mini Pancakes', 'Breakfast Options'] }
     ]},
     { section: '🏪 Pantry Staples', css: 'sec-pantry', groups: [
       { label: 'Fridge Dairy', items: ['Yoghurt', 'Cream Cheese', 'Feta Cheese', 'Grated Cheese', 'Butter'] },
